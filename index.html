@@ -8,6 +8,10 @@
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 </head>
 <body style="margin: 0; overflow: hidden;">
+    <!-- Agregar un elemento para los botones de cambio de cámara -->
+    <div id="cameraControls"></div>
+
+    <!-- La escena de AR -->
     <a-scene embedded arjs>
         <!-- Definir el marcador -->
         <a-marker preset="custom" type="pattern" url="./resources/markers/marcador.patt">
@@ -20,7 +24,52 @@
             </a-entity>
         </a-marker>
         <!-- Cámara para ver el contenido AR -->
-        <a-entity camera scale="0 0 0"></a-entity>
+        <a-entity camera></a-entity>
     </a-scene>
+
+    <script>
+        // Obtener el elemento donde se agregarán los botones de cambio de cámara
+        var cameraControls = document.getElementById('cameraControls');
+
+        // Obtener la cámara de la escena de AR
+        var camera = document.querySelector('a-camera');
+
+        // Obtener el elemento de la cámara para controlar la fuente de video
+        var domElement = camera.components.screenshot.getCanvas('camera');
+
+        // Obtener la lista de dispositivos de entrada de video disponibles
+        navigator.mediaDevices.enumerateDevices().then(function(devices) {
+            // Filtrar los dispositivos de video
+            var videoDevices = devices.filter(function(device) {
+                return device.kind === 'videoinput';
+            });
+
+            // Crear un botón para cada dispositivo de video disponible
+            videoDevices.forEach(function(device, index) {
+                var button = document.createElement('button');
+                button.textContent = 'Cámara ' + (index + 1);
+                button.addEventListener('click', function() {
+                    // Actualizar la configuración de la cámara con el deviceId correspondiente
+                    var userMediaConstraints = {
+                        audio: false,
+                        video: {
+                            deviceId: { exact: device.deviceId }
+                        }
+                    };
+
+                    // Obtener el stream de la cámara seleccionada
+                    navigator.mediaDevices.getUserMedia(userMediaConstraints).then(function(stream) {
+                        // Actualizar el srcObject de la cámara
+                        domElement.srcObject = stream;
+                    }).catch(function(error) {
+                        console.error('Error al obtener el stream de la cámara:', error);
+                    });
+                });
+                cameraControls.appendChild(button);
+            });
+        }).catch(function(error) {
+            console.error('Error al enumerar los dispositivos de entrada:', error);
+        });
+    </script>
 </body>
 </html>
