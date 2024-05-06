@@ -31,12 +31,6 @@
         // Obtener el elemento donde se agregarán los botones de cambio de cámara
         var cameraControls = document.getElementById('cameraControls');
 
-        // Obtener la cámara de la escena de AR
-        var camera = document.querySelector('a-camera');
-
-        // Obtener el elemento de la cámara para controlar la fuente de video
-        var domElement = camera.components.screenshot.getCanvas('camera');
-
         // Obtener la lista de dispositivos de entrada de video disponibles
         navigator.mediaDevices.enumerateDevices().then(function(devices) {
             // Filtrar los dispositivos de video
@@ -56,6 +50,12 @@
                             deviceId: { exact: device.deviceId }
                         }
                     };
+
+                    // Obtener la cámara de la escena de AR
+                    var camera = document.querySelector('a-camera');
+
+                    // Obtener el elemento de la cámara para controlar la fuente de video
+                    var domElement = camera.components.screenshot.getCanvas('camera');
 
                     // Obtener el stream de la cámara seleccionada
                     navigator.mediaDevices.getUserMedia(userMediaConstraints).then(function(stream) {
