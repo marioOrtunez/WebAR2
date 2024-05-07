@@ -1,51 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/@jeromeetienne/ar.js@2.3.0/aframe/build/aframe-ar.js" type="text/javascript"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR con Detección de Planos</title>
-    <style>
-        /* Estilos opcionales */
-        body {
-            margin: 0;
-            overflow: hidden;
-        }
-        #container {
-            width: 100vw;
-            height: 100vh;
-            position: fixed;
-        }
-    </style>
+    <title>AR.js Example</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
 </head>
-<body>
-    <div id="container"></div>
-
-    <!-- Incluir la biblioteca AR.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@jeromeetienne/ar.js@2.3.0/aframe/build/aframe-ar.js"></script>
-
-    <!-- Configurar la escena AR -->
-    <script>
-        AFRAME.registerComponent('foo', {
-            init: function () {
-                // Función para manejar la detección de plano
-                this.el.sceneEl.addEventListener('arjs-nft-loaded', () => {
-                    // Código para manejar la detección de planos
-                    console.log('Plano detectado');
-                });
-            }
-        });
-    </script>
-
-    <!-- Definir la escena -->
-    <a-scene foo embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <!-- Agregar un marcador de plano -->
-        <a-nft type="nft" url="./resources/markers/Avi.patt" smooth="true" smoothCount="10" smoothTolerance=".01" smoothThreshold="5">
-            <!-- Agregar contenido 3D -->
-            <a-entity gltf-model="./resources/models/AVI.fbx" scale="0.5 0.5 0.5"></a-entity>
-        </a-nft>
-        <!-- Agregar la cámara para la AR -->
+<body style="margin: 0; overflow: hidden;">
+    <!-- La escena de AR -->
+    <a-scene embedded arjs>
+        <!-- Definir el marcador -->
+        <a-marker preset="custom" type="pattern" url="./resources/markers/marcador.patt">
+            <!-- Definir el contenido que se mostrará cuando se detecte el marcador -->
+            <a-entity position="0 0 0">
+                <!-- Agregar un modelo 3D -->
+                <a-box position="0 0.5 0" rotation="0 45 0" color="#4CC3D9" shadow></a-box>
+                <!-- Agregar una luz -->
+                <a-light type="point" intensity="2" position="2 4 4"></a-light>
+            </a-entity>
+        </a-marker>
+        <!-- Cámara para ver el contenido AR -->
         <a-entity camera></a-entity>
     </a-scene>
+
+    <!-- Agregar el script para configurar la cámara principal -->
+    <script>
+        // Obtener la lista de dispositivos de entrada de video disponibles
+navigator.mediaDevices.enumerateDevices().then(function(devices) {
+    // Filtrar los dispositivos de video para encontrar la cámara principal o la que se utiliza normalmente
+    var mainCamera = devices.find(function(device) {
+        return device.kind === 'videoinput' && device.label.toLowerCase().includes('back');
+    });
+
+    if (!mainCamera) {
+        console.error('No se encontró la cámara principal.');
+        return;
+    }
+
+    // Configurar la cámara en tu escena de AR utilizando el deviceId de la cámara principal
+    var userMediaConstraints = {
+        audio: false,
+        video: {
+            deviceId: { exact: mainCamera.deviceId }
+        }
+    };
+
+    // Obtener la cámara de la escena de AR
+    var camera = document.querySelector('a-camera');
+
+    // Obtener el elemento de la cámara para controlar la fuente de video
+    var domElement = camera.components.screenshot.getCanvas('camera');
+
+    // Obtener el stream de la cámara principal
+    navigator.mediaDevices.getUserMedia(userMediaConstraints).then(function(stream) {
+        // Actualizar el srcObject de la cámara
+        domElement.srcObject = stream;
+    }).catch(function(error) {
+        console.error('Error al obtener el stream de la cámara principal:', error);
+    });
+}).catch(function(error) {
+    console.error('Error al enumerar los dispositivos de entrada:', error);
+});
+
+    </script>
 </body>
 </html>
