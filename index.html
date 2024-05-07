@@ -27,42 +27,41 @@
     <!-- Agregar el script para configurar la cámara principal -->
     <script>
         // Obtener la lista de dispositivos de entrada de video disponibles
-navigator.mediaDevices.enumerateDevices().then(function(devices) {
-    // Filtrar los dispositivos de video para encontrar la cámara principal o la que se utiliza normalmente
-    var mainCamera = devices.find(function(device) {
-        return device.kind === 'videoinput' && device.label.toLowerCase().includes('back');
-    });
+        navigator.mediaDevices.enumerateDevices().then(function(devices) {
+            // Filtrar los dispositivos de video para encontrar la cámara principal o la que se utiliza normalmente
+            var mainCamera = devices.find(function(device) {
+                return device.kind === 'videoinput' && device.label.toLowerCase().includes('back');
+            });
 
-    if (!mainCamera) {
-        console.error('No se encontró la cámara principal.');
-        return;
-    }
+            if (!mainCamera) {
+                console.error('No se encontró la cámara principal.');
+                return;
+            }
 
-    // Configurar la cámara en tu escena de AR utilizando el deviceId de la cámara principal
-    var userMediaConstraints = {
-        audio: false,
-        video: {
-            deviceId: { exact: mainCamera.deviceId }
-        }
-    };
+            // Configurar la cámara en tu escena de AR utilizando el deviceId de la cámara principal
+            var userMediaConstraints = {
+                audio: false,
+                video: {
+                    deviceId: { exact: mainCamera.deviceId }
+                }
+            };
 
-    // Obtener la cámara de la escena de AR
-    var camera = document.querySelector('a-camera');
+            // Obtener la cámara de la escena de AR
+            var camera = document.querySelector('a-entity[camera]');
 
-    // Obtener el elemento de la cámara para controlar la fuente de video
-    var domElement = camera.components.screenshot.getCanvas('camera');
+            // Obtener el elemento de la cámara para controlar la fuente de video
+            var domElement = camera.components.screenshot.getCanvas('camera');
 
-    // Obtener el stream de la cámara principal
-    navigator.mediaDevices.getUserMedia(userMediaConstraints).then(function(stream) {
-        // Actualizar el srcObject de la cámara
-        domElement.srcObject = stream;
-    }).catch(function(error) {
-        console.error('Error al obtener el stream de la cámara principal:', error);
-    });
-}).catch(function(error) {
-    console.error('Error al enumerar los dispositivos de entrada:', error);
-});
-
+            // Obtener el stream de la cámara principal
+            navigator.mediaDevices.getUserMedia(userMediaConstraints).then(function(stream) {
+                // Actualizar el srcObject de la cámara
+                domElement.srcObject = stream;
+            }).catch(function(error) {
+                console.error('Error al obtener el stream de la cámara principal:', error);
+            });
+        }).catch(function(error) {
+            console.error('Error al enumerar los dispositivos de entrada:', error);
+        });
     </script>
 </body>
 </html>
