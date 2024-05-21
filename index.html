@@ -1,27 +1,43 @@
 <html>
-  <body>
-    <script src="https://aframe.io/releases/0.2.0/aframe.min.js"></script>
-    <script src="https://rawgit.com/ngokevin/aframe-layout-component/master/dist/aframe-layout-component.min.js"></script>
-    <a-scene>
-      <a-entity id="gallery" layout="type: line; margin: 1.2" position="0 0 3">
-        <a-plane id="one" color="#CCC" look-at="[camera]"></a-plane>
-        <a-plane id="two" color="#CCC" look-at="[camera]"></a-plane>
-        <a-plane id="three" color="#CCC" look-at="[camera]"></a-plane>
-      </a-entity>
+    <body>
+      <script src="https://aframe.io/releases/0.2.0/aframe.min.js"></script>
+      <script src="https://rawgit.com/ngokevin/aframe-layout-component/master/dist/aframe-layout-component.min.js"></script>
+      <a-scene>
+        <a-entity id="gallery" layout="type: line; margin: 1.2" position="0 0 3">
 
-      <!-- Camera & environment -->
+          <a-plane id="one" color="#CCC" look-at="[camera]"></a-plane>
+          <a-plane id="two" color="#CCC" look-at="[camera]"></a-plane>
+          <a-plane id="three" color="#CCC" look-at="[camera]"></a-plane>
+          </a-entity>
+    <!--camera & env -->
       <a-camera position="0 0 4" id="camera">
         <a-entity cursor="fuse: true; maxDistance: 30; timeout: 500"
-                  position="0 0 -.6"
-                  scale=".01 .01 .01"
-                  geometry="primitive: ring"
-                  material="color: green; shader: flat">
-        </a-entity>
+          position="0 0 -.6"
+          scale=".01 .01 .01"
+          geometry="primitive: ring"
+          material="color: green; shader: flat">
+    </a-entity>
+    <a-animation attribute="position"
+      begin="one"
+      to="0 0 4"
+      dur="1000"
+      fill="forwards"
+      easing="ease-in-out-cubic"></a-animation>
+      <a-animation attribute="position"
+        begin="two"
+        to="1 0 4"
+        dur="1000"
+        fill="forwards"
+        easing="ease-in-out-cubic"></a-animation>
+      <a-animation  attribute="position"                 begin="three"                                                          dur="1000"                                                            fill="forwards"
+    to="2 0 4"
+    easing="ease-in-out-cubic"></a-animation>
+
       </a-camera>
 
       <a-sky color="#ECECEC"></a-sky>
       <a-light type="directional" color="#fff" intensity="0.2" position="-1 2 1"></a-light>
       <a-light type="ambient" color="#fff"></a-light>
     </a-scene>
-  </body>
-</html>
+    </body>
+    </html>
