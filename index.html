@@ -1,68 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Experience</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/libs/ammo.js"></script>
-    <script src="https://cdn.rawgit.com/chandlerprall/Physijs/master/physi.js"></script>
-    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+<html>
+  <body>
+    <script src="https://aframe.io/releases/0.2.0/aframe.min.js"></script>
     <script src="https://rawgit.com/ngokevin/aframe-layout-component/master/dist/aframe-layout-component.min.js"></script>
-</head>
-<body>
     <a-scene>
-        <a-entity id="gallery" layout="type: line; margin: 1.2" position="0 0 3">
-            <a-plane id="one" color="#CCC" look-at="[camera]"></a-plane>
-            <a-plane id="two" color="#CCC" look-at="[camera]"></a-plane>
-            <a-plane id="three" color="#CCC" look-at="[camera]"></a-plane>
-        </a-entity>
-        <!-- Camera & Environment -->
-        <a-camera position="0 0 4" id="camera">
-            <a-entity cursor="fuse: true; maxDistance: 30; timeout: 500"
-                      position="0 0 -.6"
-                      scale="0.1 0.1 0.1"
-                      geometry="primitive: ring"
-                      material="color: green; shader: flat"></a-entity>
-            <a-animation attribute="position"
-                         begin="one"
-                         to="0 0 4"
-                         dur="1000"
-                         fill="forwards"
-                         easing="ease-in-out-cubic"></a-animation>
-            <a-animation attribute="position"
-                         begin="two"
-                         to="1 0 4"
-                         dur="1000"
-                         fill="forwards"
-                         easing="ease-in-out-cubic"></a-animation>
-            <a-animation attribute="position"
-                         begin="three"
-                         to="2 0 4"
-                         dur="1000"
-                         fill="forwards"
-                         easing="ease-in-out-cubic"></a-animation>
-        </a-camera>
-        <a-sky color="#ECECEC"></a-sky>
-        <a-light type="directional" color="#fff" intensity="0.2" position="-1 2 1"></a-light>
-        <a-light type="ambient" color="#fff"></a-light>
-    </a-scene>
-    <script>
-        var one = document.querySelector('#one');
-        var two = document.querySelector('#two');
-        var three = document.querySelector('#three');
-        var camera = document.querySelector('#camera');
+      <a-entity id="gallery" layout="type: line; margin: 1.2" position="0 0 3">
+        <a-plane id="one" color="#CCC" look-at="[camera]"></a-plane>
+        <a-plane id="two" color="#CCC" look-at="[camera]"></a-plane>
+        <a-plane id="three" color="#CCC" look-at="[camera]"></a-plane>
+      </a-entity>
 
-        one.addEventListener('click', function () {
-            camera.emit('one');
-        });
-        two.addEventListener('click', function () {
-            camera.emit('two');
-        });
-        three.addEventListener('click', function () {
-            camera.emit('three');
-        });
-    </script>
-</body>
+      <!-- Camera & environment -->
+      <a-camera position="0 0 4" id="camera">
+        <a-entity cursor="fuse: true; maxDistance: 30; timeout: 500"
+                  position="0 0 -.6"
+                  scale=".01 .01 .01"
+                  geometry="primitive: ring"
+                  material="color: green; shader: flat">
+        </a-entity>
+      </a-camera>
+
+      <a-sky color="#ECECEC"></a-sky>
+      <a-light type="directional" color="#fff" intensity="0.2" position="-1 2 1"></a-light>
+      <a-light type="ambient" color="#fff"></a-light>
+    </a-scene>
+  </body>
 </html>
