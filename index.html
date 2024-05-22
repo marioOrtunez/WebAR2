@@ -1,21 +1,34 @@
 <!-- Definición del tipo de documento HTML -->
 <!DOCTYPE html>
 <html>
+
 <head>
     <!-- Título de la página -->
     <title>AR.js A-Frame Location-based</title>
     <!-- Inclusión de scripts necesarios -->
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script type='text/javascript' src='https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js'></script>
-    <script type='text/javascript' src='https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js'></script>
+    <script type='text/javascript'
+        src='https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/ar-threex-location-only.js'></script>
+    <script type='text/javascript'
+        src='https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js'></script>
 </head>
+
 <body>
     <!-- Inicio de la escena AR -->
-    <a-scene vr-mode-ui='enabled: false' arjs='sourceType: webcam; videoTexture: true; debugUIEnabled: false' renderer='antialias: true; alpha: true'>
+    <a-scene vr-mode-ui='enabled: false' arjs='sourceType: webcam; videoTexture: true; debugUIEnabled: false'
+        renderer='antialias: true; alpha: true'>
         <!-- Definición de la cámara -->
         <a-camera gps-new-camera='gpsMinDistance: 5'></a-camera>
-        <!-- Entidad en la escena -->
-        <a-entity material='color: red' geometry='primitive: box' gps-entity-place="latitude: 41.518861; longitude: -4.721556; distance: 50;" scale="1 1 1"></a-entity>
+        <!-- Entidad en la escena
+        <a-entity material='color: red' geometry='primitive: box' gps-entity-place="latitude: 41.518861; 
+        longitude: -4.721556; distance: 50;" scale="1 1 1"></a-entity>
+        -->
+        <!-- Figura 3D -->
+        <a-box id="mi-figura" color="blue" position="0 3 -5" scale="1 2 1" animation__click="property: position; to: 0 0 -5; dur: 1000; easing: easeOutElastic" dynamic-body></a-box>
+        
+        <!-- Evento para activar la animación -->
+        <a-entity cursor="rayOrigin: mouse" raycaster="objects: [clickable-entity]" event-set__1="_event: click; visible: true" event-set__2="_event: click; components.dynamic-body.enabled: true"></a-entity>
     </a-scene>
 </body>
+
 </html>
