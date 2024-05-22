@@ -11,6 +11,8 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            width: 100%;
+            height: 100%;
         }
         a-scene {
             position: absolute;
@@ -22,7 +24,7 @@
     </style>
 </head>
 <body>
-    <a-scene embedded arjs="sourceType: webcam; videoTexture: true;">
+    <a-scene embedded arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;">
         <!-- AR Content -->
         <a-marker preset="hiro">
             <a-box position="0 0.5 0" material="color: red;"></a-box>
@@ -31,4 +33,5 @@
     </a-scene>
 </body>
 </html>
+
 
