@@ -1,99 +1,229 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>AR.js with Three.js - Surface Detection</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.rawgit.com/AR-js-org/AR.js/master/three.js/build/ar.js"></script>
-  <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
-  </style>
-</head>
-<body>
-<script>
-  // Variables globales
-  var scene, camera, renderer, arToolkitSource, arToolkitContext;
+  <head>
+    <meta charset="utf-8">
+    <title>aframe-ar-plane</title>
+    <meta name="description" content="aframe-ar-plane">
+    <!-- First, include whichever version of A-Frame you like. -->
+		<script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@e416f25/dist/aframe-master.min.js"></script>
+    <!-- Last, include aframe-ar. -->
+    <script src="https://ghcdn.rawgit.org/chenzlabs/aframe-ar/fb69413/dist/aframe-ar.min.js"></script>
+    
+    <!-- Include grid shader. -->
+    <script src="grid-shader.js"></script>
 
-  // Inicializar la escena
-  function init() {
-    scene = new THREE.Scene();
+    <!-- Include polygon component. -->
+    <script src="polygon.js"></script>
+        
+    <!-- Prevent touch causing flicker on iOS. -->
+    <style> * { -webkit-tap-highlight-color: rgba(0,0,0,0); } </style>    
+  </head>
+  <body>    
+    <!-- This is the thing we stick in the middle of planes we detect. -->
+    <script>
+      AFRAME.registerComponent('thing', {
+        init: function () {
+          this.el.setAttribute('geometry', {primitive:'box', width:0.1, depth:0.01, height:0.5});
+          this.el.setAttribute('position', {y:0.25});
+        }
+      });  
+      AFRAME.registerComponent('other_thing', {
+        init: function () {
+          this.el.setAttribute('geometry', {primitive:'cylinder',  height:0.5, radius:0.1});
+          this.el.setAttribute('position', {y:0.25});
+        }
+      });            
+    </script>    
 
-    // Configurar la cámara
-    camera = new THREE.Camera();
-    scene.add(camera);
+    <script>
+/////////////////////////////////////////////////////////////////////////////////////////
+// NOTE: for A-Frame 0.8.x, we need to listen for cursor intersection changes separately
+//        
+      AFRAME.registerComponent('track-cursor-intersection', {
+        init: function () {
+          this.point = new THREE.Vector3();
+        },
+        
+        tick: function (t, dt) {
+          // NOTE: not throttled to raycaster checkIntersections interval!
+          var cursor = this.el.components.cursor;
+          var raycaster = this.el.components.raycaster;
+          var newIntersection;
+          // NOTE: A-Frame 0.7.1 (which doesn't need this) does not have raycaster.intersections
+          if (cursor && raycaster && raycaster.intersections) {
+            newIntersection = raycaster.intersections.length ? raycaster.intersections[0] : undefined;
+            // NOTE: the intersections are always different (!) so check object
+            if ((cursor.intersection && cursor.intersection.object) !== (newIntersection && newIntersection.object)) {
+              // new cursor intersection object
+              cursor.intersection = newIntersection;              
+              this.el.emit('cursor-intersection-changed', cursor.intersection, false);
+            } else
+            if (newIntersection && !newIntersection.point.equals(cursor.intersection.point)) {
+              // new cursor intersection point
+              cursor.intersection.point.copy(newIntersection.point);
+              this.el.emit('cursor-intersection-changed', newIntersection, false);
+            } else {
+              // same or no cursor intersection point
+            }
+          }
+        }
+      });            
+//
+/////////////////////////////////////////////////////////////////////////////////////////
+    </script>    
+    
+    <!-- Include planes handling example code. -->
+    <script src="planes-example.js"></script>        
 
-    // Configurar el renderer
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setClearColor(new THREE.Color('lightgrey'), 0);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.domElement.style.position = 'absolute';
-    renderer.domElement.style.top = '0px';
-    renderer.domElement.style.left = '0px';
-    document.body.appendChild(renderer.domElement);
+    <!-- Our scene uses the ar component. -->
+    <a-scene ar="worldSensing:true">
+      <a-assets>
+        <a-asset-item id="peach" src="models/peach.glb"></a-asset-item>
+      </a-assets>
 
-    // Configurar el origen de AR
-    arToolkitSource = new THREEx.ArToolkitSource({
-      sourceType: 'webcam',
-    });
+      <!-- When we have a raycaster hit, we use this ball to show where. -->
+      <a-sphere id="ball" radius="0.01" position="0 0.005 -0.5"></a-sphere>
 
-    arToolkitSource.init(function onReady() {
-      onResize();
-    });
+      <a-camera>
+        <!-- A hit from AR, rather than A-Frame objects, hits this entity. -->
+        <a-entity id="ar-world"></a-entity>
+        
+        <!-- Declare a cursor, and what objects its raycaster hit (including AR). -->
+        <!-- NOTE: ar-raycaster VRHit uses a "tolerance" fudge factor, so imprecise -->
+        <a-entity cursor="fuse:false" track-cursor-intersection
+                  raycaster="objects:.plane;recursive:false" 
+                  ar-raycaster="el:#ar-world"></a-entity>
+        
+        <!-- Separate the cursor appearance.-->
+        <a-entity position="0 0 -0.1"
+                  scale="0.001 0.001 0.001"
+                  geometry="primitive: ring; radiusInner: 0.8; radiusOuter: 1" 
+                  material="color: yellow; shader: flat; transparent:true"></a-entity>
+        
+        <!-- Heads-up text display. -->
+        <a-text id="hud" 
+                scale="0.01 0.01 0.01" position="0 -0.025 -0.1" 
+                color="yellow" align="center" 
+                value="Hi there"></a-text>
+      </a-camera>
+    </a-scene>    
+    
+    <script>
+      var sc = document.querySelector('a-scene');
+      var ball = document.querySelector('#ball');
+      function showHUD(msg) { sc.querySelector('#hud').setAttribute('value', msg); }
+      
+      function addARRaycasterListeners() {
+        var raycaster = sc.querySelector('[ar-raycaster]');
+        // Note, -intersection is what the raycaster gets; the hit object gets -intersected.
+        raycaster.addEventListener('raycaster-intersection', function (evt) {
+          // Use first hit (which should be nearest).
+          var point = evt.detail.intersections[0].point;
+          var distance = evt.detail.intersections[0].distance;
+          var el = evt.detail.els[0];
+          showHUD('raycaster-intersection ' + distance + '\n' + JSON.stringify(point) + '\n' + el.id /*el.outerHTML*/);
+          if (el.getAttribute('class') === 'plane') { el.setAttribute('opacity', 1.0); }
+          ball.setAttribute('position', point);
+          ball.setAttribute('visible', true);
+        });
+        raycaster.addEventListener('raycaster-intersection-cleared', function (evt) {
+          var clearedEls = evt.detail.clearedEls;
+          showHUD('raycaster-intersection-cleared\n');// + el.outerHTML);
+          for (var i=0; i<clearedEls.length; i++) {
+            var el = clearedEls[i];
+            if (el.getAttribute('class') === 'plane') { el.setAttribute('opacity', 0.5); }
+          }
+          ball.setAttribute('visible', false);
+        });
+/////////////////////////////////////////////////////////////////////////////////////////
+// NOTE: for A-Frame 0.8.x, we need to listen for cursor intersection changes separately
+//        
+        raycaster.addEventListener('cursor-intersection-changed', function (evt) {
+          if (evt.detail) {
+            // Use provided hit.
+            var point = evt.detail.point;
+            var distance = evt.detail.distance;
+            var el = evt.detail.object.el;
+            showHUD('cursor-intersection-changed ' + distance + '\n' + JSON.stringify(point) + '\n' + el.id /*el.outerHTML*/);
+            if (el.getAttribute('class') === 'plane') { el.setAttribute('opacity', 1.0); }
+            ball.setAttribute('position', point);
+            ball.setAttribute('visible', true);
+          }
+        });
+//
+/////////////////////////////////////////////////////////////////////////////////////////
+      }
+      
+      function addEventListeners() {
+        addARRaycasterListeners();
+        addPlaneListeners();
+      }      
+      
+      function onSceneLoaded() { 
+        var tempPos = new THREE.Vector3();
+        var tempQuat = new THREE.Quaternion();
+        var tempScale = new THREE.Vector3();
+        var tempEuler = new THREE.Euler(0, 0, 0, 'YXZ');
+        var tempMat4 = new THREE.Matrix4();
+        
+/////////////////////////////////////////////////////////////////////////////////////////
+// NOTE: first surprise with master, we never get window click anymore? worked around.
+// NOTE: second surprise with master, we have no cursor intersection... fixed!
+//        
+        window.addEventListener('touchstart'/*'click'*/, function() {
+//          
+/////////////////////////////////////////////////////////////////////////////////////////
 
-    window.addEventListener('resize', function() {
-      onResize();
-    });
+          // If the cursor has an intersection, place a marker.
+          var cursor = sc.querySelector('[ar-raycaster]').components.cursor;
+          if (cursor.intersection) {
+            /*
+            var marker = document.createElement('a-box');
+            marker.setAttribute('width', 0.1);
+            marker.setAttribute('depth', 0.1);
+            marker.setAttribute('height', 0.1);
+            marker.setAttribute('color', 'red');
+            */
+            var marker = document.createElement('a-entity');            
+            marker.setAttribute('gltf-model',"#peach");
+            marker.setAttribute('scale',"0.02 0.02 0.02")
+            marker.setAttribute('position', {
+              x: cursor.intersection.point.x, 
+              y: cursor.intersection.point.y + 0.1, 
+              z: cursor.intersection.point.z});
+            sc.appendChild(marker);
+          }
+          
+          // Show plane info on click.
+          var planes = sc.components['ar-planes'].getPlanes();
+          if (planes) {
+            var keys = Object.keys(planes);
+            var msg = '(' + keys.length + ': ' + keys.join(',') + ')\n\n';
 
-    // Crear el contexto de ARToolkit
-    arToolkitContext = new THREEx.ArToolkitContext({
-      cameraParametersUrl: 'https://cdn.rawgit.com/AR-js-org/AR.js/master/data/data/camera_para.dat',
-      detectionMode: 'mono_and_matrix',
-    });
+            planes.forEach(function (plane) {
+              // Decompose into pos / quat / scale, and make euler.
+              tempMat4.fromArray(plane.modelMatrix);
+              tempMat4.decompose(tempPos, tempQuat, tempScale);
+              tempEuler.setFromQuaternion(tempQuat);
 
-    // Inicializar el contexto de ARToolkit
-    arToolkitContext.init(function onCompleted() {
-      camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
-    });
-
-    // Crear un marcador para la detección de superficies
-    var markerRoot = new THREE.Group();
-    scene.add(markerRoot);
-    new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
-      type: 'pattern',
-      patternUrl: 'https://cdn.rawgit.com/AR-js-org/AR.js/master/data/data/patt.hiro',
-    });
-
-    // Crear una caja simple como objeto 3D
-    var geometry = new THREE.BoxGeometry(1, 1, 1);
-    var material = new THREE.MeshNormalMaterial();
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.position.y = 0.5;
-    markerRoot.add(mesh);
-
-    // Renderizar la escena
-    animate();
-  }
-
-  // Ajustar el tamaño del renderer y la fuente de AR
-  function onResize() {
-    arToolkitSource.onResizeElement();
-    arToolkitSource.copyElementSizeTo(renderer.domElement);
-    if (arToolkitContext.arController !== null) {
-      arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas);
-    }
-  }
-
-  // Función de animación
-  function animate() {
-    requestAnimationFrame(animate);
-    if (arToolkitSource.ready) {
-      arToolkitContext.update(arToolkitSource.domElement);
-    }
-    renderer.render(scene, camera);
-  }
-
-  // Inicializar la aplicación
-  init();
-</script>
-</body>
+              // Write out what we got, for debugging.
+              msg += 
+              '\nidentifier: ' + plane.id + // string, per latest spec
+              ' ' + JSON.stringify(tempPos) +
+              ' ' + plane.extent + '\n' + // number[2], per latest spec
+              ' ' + JSON.stringify(tempEuler.toVector3().multiplyScalar(THREE.Math.RAD2DEG)) +
+              (plane.vertices ? (' vertices: ' + plane.vertices.length) : '') + // number[3*n], per latest spec
+              '\n';
+            });
+          }          
+          showHUD(msg);
+        });
+        
+        addEventListeners();
+      }
+      
+      if (sc.hasLoaded) { onSceneLoaded(); }
+      else { sc.addEventListener('loaded', onSceneLoaded); }
+    </script>
+  </body>
 </html>
