@@ -1,13 +1,24 @@
-var one =     document.querySelector('#one');
+var one = document.querySelector('#one');
 var two = document.querySelector('#two');
 var three = document.querySelector('#three');
+
+var at = "one";
 one.addEventListener('click', function () {
-          camera.emit('one');
-          });
+  if (at !== "one") {
+    at = "one";
+    camera.emit('one');
+  }
+});
 two.addEventListener('click', function () {
-          camera.emit('two');
-                    });
+  if (at !== "two") {
+    at = "two";
+    camera.emit('two');
+  }
+});
 
 three.addEventListener('click', function () {
-          camera.emit('three');
-            });
+  if (at !== "three") {
+    at = "three";
+    camera.emit('three');
+  }
+});
