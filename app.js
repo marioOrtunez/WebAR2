@@ -5,14 +5,17 @@ animate();
 
 function init() {
     scene = new THREE.Scene();
-    
+    console.log("Scene initialized");
+
     camera = new THREE.Camera();
     scene.add(camera);
-    
+    console.log("Camera added to scene");
+
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
-    
+    console.log("Renderer initialized");
+
     arToolkitSource = new THREEx.ArToolkitSource({
         sourceType: 'webcam'
     });
@@ -34,6 +37,7 @@ function init() {
 
     arToolkitContext.init(() => {
         camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+        console.log("AR Toolkit context initialized");
     });
 
     markerRoot = new THREE.Group();
@@ -49,6 +53,7 @@ function init() {
     mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.x = -Math.PI / 2;
     markerRoot.add(mesh);
+    console.log("Mesh added to markerRoot");
 
     raycaster = new THREE.Raycaster();
     mouse = new THREE.Vector2();
@@ -57,8 +62,11 @@ function init() {
 
     let loader = new THREE.FBXLoader();
     loader.load('resources/models/pawn.fbx', (object) => {
+        console.log("Model loaded successfully");
         model = object;
         model.scale.set(0.1, 0.1, 0.1); // Escala el modelo según sea necesario
+    }, undefined, (error) => {
+        console.error("Error loading model:", error);
     });
 
     document.getElementById('snapshotButton').addEventListener('click', takeSnapshot);
@@ -70,10 +78,12 @@ function onResize() {
     if (arToolkitContext.arController !== null) {
         arToolkitSource.copyElementSizeTo(arToolkitContext.arController.canvas);
     }
+    console.log("Resize handled");
 }
 
 function onClick(event) {
     event.preventDefault();
+    console.log("Canvas clicked");
 
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
@@ -83,10 +93,14 @@ function onClick(event) {
     let intersects = raycaster.intersectObject(mesh);
 
     if (intersects.length > 0 && model) {
+        console.log("Intersection found");
         let intersect = intersects[0];
         let newModel = model.clone();
         newModel.position.copy(intersect.point);
         markerRoot.add(newModel);
+        console.log("Model placed at intersection point");
+    } else {
+        console.log("No intersection found");
     }
 }
 
@@ -101,12 +115,15 @@ function takeSnapshot() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        console.log("Snapshot taken");
     });
 }
 
 function animate() {
     requestAnimationFrame(animate);
-    if (arToolkitSource.ready !== false)
+    if (arToolkitSource.ready !== false) {
         arToolkitContext.update(arToolkitSource.domElement);
+    }
     renderer.render(scene, camera);
+    console.log("Rendering scene");
 }
