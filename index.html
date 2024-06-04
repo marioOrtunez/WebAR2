@@ -1,20 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AR Ground Detection</title>
+    <title>AR Demo</title>
     <style>
         body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-        #capture { position: absolute; top: 10px; left: 10px; }
+        #snapshotButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-    <button id="capture">Capture</button>
+    <button id="snapshotButton">Tomar Foto</button>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://rawcdn.githack.com/MozillaReality/three.js/111fe88c0d6b60b33f1b964f5f00773fda327d6f/examples/jsm/loaders/FBXLoader.js"></script>
-    <script src="https://cdn.rawgit.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="app.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/1.6.2/three.js/build/ar.js"></script>
+    <script src="main.js"></script>
 </body>
 </html>
